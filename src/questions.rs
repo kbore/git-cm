@@ -39,7 +39,7 @@ pub fn ask(types: HashMap<&str, &str>) -> SurveyResults {
         .collect::<Vec<_>>();
     let items = type_options
         .iter()
-        .map(|(name, desc)| format!("{}: {}", name, desc))
+        .map(|(name, desc)| format!("{:<10} [{}]", format!("{name}:"), desc))
         .collect::<Vec<_>>();
 
     let selected_index = Select::with_theme(&ColorfulTheme::default())
