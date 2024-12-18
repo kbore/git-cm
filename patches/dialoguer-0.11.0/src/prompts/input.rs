@@ -6,6 +6,7 @@ use std::{
 };
 
 use console::{Key, Term};
+use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 #[cfg(feature = "completion")]
 use crate::completion::Completion;
@@ -324,33 +325,45 @@ where
             }
             term.flush()?;
 
+            // 计算单个unicode字符的字符宽度(显示宽度), 注意不是字节宽度
+            // utf-8中文编码占用3个字节长度, 显示长度一般是2字节
+            fn char_width(chr: char) -> usize {
+                chr.width().unwrap()
+            }
+
             loop {
                 match term.read_key()? {
                     Key::Backspace if position > 0 => {
                         position -= 1;
-                        chars.remove(position);
+                        let chr = chars.remove(position);
                         let line_size = term.size().1 as usize;
+
+                        // 截止光标指示位置的输入字符串显示宽度, 下同
+                        let position_width = chars[0..position].iter().collect::<String>().width();
+
                         // Case we want to delete last char of a line so the cursor is at the beginning of the next line
-                        if (position + prompt_len) % (line_size - 1) == 0 {
+                        if (position_width + prompt_len) % (line_size - 1) == 0 {
                             term.clear_line()?;
                             term.move_cursor_up(1)?;
                             term.move_cursor_right(line_size + 1)?;
                         } else {
-                            term.clear_chars(1)?;
+                            term.clear_chars(char_width(chr))?;
                         }
 
                         let tail: String = chars[position..].iter().collect();
+                        let whole: String = chars.iter().collect();
 
                         if !tail.is_empty() {
                             term.write_str(&tail)?;
 
-                            let total = position + prompt_len + tail.chars().count();
+                            // let total = position + prompt_len + tail.chars().count();
+                            let total = whole.width() + prompt_len;
                             let total_line = total / line_size;
-                            let line_cursor = (position + prompt_len) / line_size;
+                            let line_cursor = (position_width + prompt_len) / line_size;
                             term.move_cursor_up(total_line - line_cursor)?;
 
                             term.move_cursor_left(line_size)?;
-                            term.move_cursor_right((position + prompt_len) % line_size)?;
+                            term.move_cursor_right((position_width + prompt_len) % line_size)?;
                         }
 
                         term.flush()?;
@@ -361,25 +374,27 @@ where
                         let tail: String =
                             iter::once(&chr).chain(chars[position..].iter()).collect();
                         term.write_str(&tail)?;
-                        term.move_cursor_left(tail.chars().count() - 1)?;
+                        term.move_cursor_left(tail.width() - char_width(chr))?;
                         term.flush()?;
                     }
                     Key::ArrowLeft if position > 0 => {
-                        if (position + prompt_len) % term.size().1 as usize == 0 {
+                        let position_width = chars[0..position].iter().collect::<String>().width();
+                        if (position_width + prompt_len) % term.size().1 as usize == 0 {
                             term.move_cursor_up(1)?;
                             term.move_cursor_right(term.size().1 as usize)?;
                         } else {
-                            term.move_cursor_left(1)?;
+                            term.move_cursor_left(char_width(chars[position - 1]))?;
                         }
                         position -= 1;
                         term.flush()?;
                     }
                     Key::ArrowRight if position < chars.len() => {
-                        if (position + prompt_len) % (term.size().1 as usize - 1) == 0 {
+                        let position_width = chars[0..position].iter().collect::<String>().width();
+                        if (position_width + prompt_len) % (term.size().1 as usize - 1) == 0 {
                             term.move_cursor_down(1)?;
                             term.move_cursor_left(term.size().1 as usize)?;
                         } else {
-                            term.move_cursor_right(1)?;
+                            term.move_cursor_right(char_width(chars[position]))?;
                         }
                         position += 1;
                         term.flush()?;

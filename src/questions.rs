@@ -53,7 +53,7 @@ pub fn ask(types: HashMap<&str, &str>) -> SurveyResults {
 
     let scope = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("Denote the scope of this change (compiler, runtime, stdlib, etc.):")
-        .allow_empty(true)
+        .allow_empty(false)
         .interact_text()
         .ok()
         .filter(|v: &String| !v.is_empty());
@@ -61,7 +61,7 @@ pub fn ask(types: HashMap<&str, &str>) -> SurveyResults {
 
     let short_msg: String = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("Write a short, imperative tense description of the change:")
-        .allow_empty(true)
+        .allow_empty(false)
         .interact_text()
         .unwrap();
     results.short_msg = short_msg;
