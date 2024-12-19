@@ -23,8 +23,14 @@ ctrlc = { version = "3.1.9", features = ["termination"] }
 dialoguer = "0.11.0"
 edit = "0.1.3"
 git2 = { version = "0.18.3", default-features = false }
+inquire = { version = "0.7.5", default-features = true, features = ["termion", "date"] }
 once_cell = "1.7.2"
 serde = { version = "1.0.126", features = ["derive"] }
 
 [patch.crates-io]
 dialoguer = { path = "patches/dialoguer-0.11.0" }
+
+# inquire 0.7.5之后修复了中文输入光标显示位置不正确的bug, 新版本发布后取消补丁
+# [When I input Chinese characters in the command line, the cursor becomes chaotic. · Issue #270 · mikaelmello/inquire]
+# (https://github.com/mikaelmello/inquire/issues/270)
+inquire = { git = "https://github.com/mikaelmello/inquire", rev = "446ce3d134a7e5e6158ecbd4ceb24e3c13abde61" }

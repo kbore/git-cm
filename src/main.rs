@@ -57,11 +57,11 @@ fn main() {
         // When terminating the CLI during the dialoguer phase, the cursor will be
         // hidden. The callback here makes sure that the cursor is visible in these
         // cases.
-        let _ = ctrlc::set_handler(move || {
-            let term = dialoguer::console::Term::stderr();
-            let _ = term.show_cursor();
-            std::process::exit(1);
-        });
+        // let _ = ctrlc::set_handler(move || {
+        //     let term = dialoguer::console::Term::stderr();
+        //     let _ = term.show_cursor();
+        //     std::process::exit(1);
+        // });
 
         run(app);
     }

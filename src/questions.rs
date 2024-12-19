@@ -1,5 +1,9 @@
-use dialoguer::{theme::ColorfulTheme, Confirm, Input, Select};
 use std::collections::HashMap;
+
+use inquire::{
+    error::{CustomUserError, InquireResult},
+    min_length, required, Confirm, CustomType, Select, Text,
+};
 
 /// The result of the questioning process.
 #[derive(Debug, Default)]
@@ -32,76 +36,69 @@ impl SurveyResults {
 pub fn ask(types: HashMap<&str, &str>) -> SurveyResults {
     let mut results = SurveyResults::new();
 
-    // Select the scope of the commit.
-    let type_options = types
+    // <name####desc, desc>
+    let commit_type_map: HashMap<String, &str> = types
         .iter()
-        .map(|(name, desc)| (name, desc))
-        .collect::<Vec<_>>();
-    let items = type_options
-        .iter()
-        .map(|(name, desc)| format!("{:<10} [{}]", format!("{name}:"), desc))
-        .collect::<Vec<_>>();
+        .map(|(&name, &desc)| (format!("{:<10} [{}]", format!("{name}:"), desc), name))
+        .collect();
 
-    let selected_index = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Select the type of change that you're committing:")
-        .default(0)
-        .items(&items)
-        .interact()
+    let items = commit_type_map.iter().map(|(key, _)| key).collect();
+
+    let selected_item = Select::new("Select the type of change that you're committing:", items)
+        .with_starting_cursor(0)
+        .with_formatter(&|show_item| commit_type_map[*show_item.value].to_string())
+        .with_help_message("Use arrow keys to select")
+        .prompt()
         .unwrap();
-    let selected_commit_type = &type_options[selected_index];
-    results.commit_type = (*selected_commit_type.0).to_string();
 
-    let scope = Input::with_theme(&ColorfulTheme::default())
-        .with_prompt("Denote the scope of this change (compiler, runtime, stdlib, etc.):")
-        .allow_empty(false)
-        .interact_text()
-        .ok()
-        .filter(|v: &String| !v.is_empty());
+    results.commit_type = commit_type_map[selected_item].to_string();
+
+    let scope = Text::new("What is the scope of this change (e.g. component or file name):")
+        .with_validator(required!())
+        .prompt()
+        .ok();
     results.scope = scope;
 
-    let short_msg: String = Input::with_theme(&ColorfulTheme::default())
-        .with_prompt("Write a short, imperative tense description of the change:")
-        .allow_empty(false)
-        .interact_text()
+    let short_msg = Text::new("Write a short, imperative tense description of the change:")
+        .with_validator(min_length!(5))
+        .with_help_message("Not less 5 characters")
+        .prompt()
         .unwrap();
     results.short_msg = short_msg;
 
-    let long_msg: Option<String> = Input::with_theme(&ColorfulTheme::default())
-        .with_prompt("Provide a longer description of the change:")
-        .allow_empty(true)
-        .interact_text()
-        .ok()
-        .filter(|v: &String| !v.is_empty());
+    let long_msg = Text::new("Provide a longer description of the change:")
+        .with_help_message("Press enter to skip")
+        .prompt()
+        .ok();
     results.long_msg = long_msg;
 
-    let is_breaking_change = Confirm::with_theme(&ColorfulTheme::default())
-        .with_prompt("Are there any breaking changes?")
-        .default(false)
-        .interact()
+    let is_breaking_change = Confirm::new("Are there any breaking changes?")
+        .with_default(false)
+        .prompt()
         .unwrap();
 
     if is_breaking_change {
-        let breaking_changes_desc = Input::with_theme(&ColorfulTheme::default())
-            .with_prompt("Describe the breaking changes:")
-            .interact_text()
+        let breaking_changes_desc = Text::new("Describe the breaking changes:")
+            .with_validator(min_length!(5))
+            .with_help_message("Not less 5 characters")
+            .prompt()
             .ok();
         results.breaking_changes_desc = breaking_changes_desc;
     }
 
-    let are_issues_affected = Confirm::with_theme(&ColorfulTheme::default())
-        .with_prompt("Does this change affect any open issues?")
-        .default(false)
-        .interact()
+
+    let are_issues_affected = Confirm::new("Does this change affect any open issues?")
+        .with_default(false)
+        .prompt()
         .unwrap();
 
     if are_issues_affected {
-        let affected_open_issues: Option<String> = Input::with_theme(&ColorfulTheme::default())
-            .with_prompt("Add issue references (space-separated, e.g. \"#123\" or \"12 13\"):")
-            .interact_text()
+        let affected_open_issues = Text::new(r##"Add issue references (space-separated, e.g. "#123" or "12 13")"##)
+            .with_validator(min_length!(5))
+            .with_help_message("Not less 5 characters")
+            .prompt()
             .ok();
-        results.affected_open_issues =
-            affected_open_issues.map(|s| s.split(' ').map(|e| e.to_string()).collect());
+        results.affected_open_issues = affected_open_issues.map(|s| s.split(' ').map(|e| e.to_string()).collect());
     }
-
     results
 }
