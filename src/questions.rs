@@ -61,14 +61,13 @@ pub fn ask(types: IndexMap<&str, &str>) -> SurveyResults {
         .ok();
     results.scope = scope;
 
-    let short_msg = Text::new("Write a short, imperative tense description of the change:")
+    let short_msg = Text::new("Write a short, imperative tense description of the change:\n")
         .with_validator(min_length!(5))
         .prompt()
         .unwrap();
     results.short_msg = short_msg;
 
-    let long_msg = Text::new("Provide a longer description of the change:")
-        .with_help_message("Press enter to skip")
+    let long_msg = Text::new("Provide a longer description of the change: (press enter to skip)\n")
         .prompt()
         .ok();
     results.long_msg = long_msg;
