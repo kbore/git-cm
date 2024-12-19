@@ -9,13 +9,13 @@ use std::{ffi::OsStr, path::Path, sync::Mutex};
 pub static DEFAULT_TYPES: Lazy<IndexMap<&str, &str>> = Lazy::new(|| {
     let mut m = IndexMap::new();
 
-    m.insert("fix", "修复bug: 对应CMM问题单或issue");
-    m.insert("feat", "新增特性：新增软件功能或适配新硬件");
-    m.insert("chore", "杂项修改：代码注释，空格等不影响代码的修改");
-    m.insert("build", "构建系统修改: Makefile, CMake, pipeline, hook等");
-    m.insert("refactor", "重构代码: 既不修复bug, 也不新增特性");
-    m.insert("perf", "提升性能: 建议先做profiling再进行代码优化性能");
-    m.insert("test", "测试功能修改: 单元测试, 集成测试等测试代码修改");
+    m.insert("fix", "Fix an issue");
+    m.insert("feat", "Add feature or new hardware support");
+    m.insert("build", "Changes that affect the build system (such as Makefile, CMake, pipeline)");
+    m.insert("refactor", "Code change that neither fixes a bug nor adds a feature");
+    m.insert("perf", "Code change that improves performance");
+    m.insert("test", "Adding missing tests or correcting existing tests");
+    m.insert("chore", "Other changes that don't modify src or test files (such as documents, comments)");
 
     m
 });
