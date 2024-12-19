@@ -3,7 +3,7 @@ use anyhow::{anyhow, Result};
 use git2::{Commit, Error, ObjectType, Oid, Repository, RepositoryOpenFlags, Status};
 use indexmap::IndexMap;
 use once_cell::sync::{Lazy, OnceCell};
-use std::{collections::HashMap, ffi::OsStr, path::Path, sync::Mutex};
+use std::{ffi::OsStr, path::Path, sync::Mutex};
 
 /// All default conventional commit types alongside their description.
 pub static DEFAULT_TYPES: Lazy<IndexMap<&str, &str>> = Lazy::new(|| {

@@ -1,6 +1,5 @@
 use crate::{
     args::App,
-    cargo::parse_manifest,
     git::{
         check_staged_files_exist, commit_to_repo, generate_commit_msg, get_repository,
         DEFAULT_TYPES,
@@ -9,7 +8,7 @@ use crate::{
 };
 use clap::Parser;
 use indexmap::IndexMap;
-use std::{collections::HashMap, path::Path};
+use std::path::Path;
 
 mod args;
 mod cargo;
@@ -20,7 +19,7 @@ fn run_dialog() -> Option<SurveyResults> {
     let mut types: IndexMap<&str, &str> = IndexMap::with_capacity(10);
     types.extend(&*DEFAULT_TYPES);
 
-    return Some(ask(types));
+    Some(ask(types))
 }
 
 fn create_commit(commit_msg: &str, repo: &Path) {

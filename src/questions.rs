@@ -1,9 +1,7 @@
-use std::collections::HashMap;
 
 use indexmap::IndexMap;
 use inquire::{
-    error::{CustomUserError, InquireResult},
-    min_length, required, Confirm, CustomType, Select, Text,
+    min_length, required, Confirm, Select, Text,
 };
 
 /// The result of the questioning process.

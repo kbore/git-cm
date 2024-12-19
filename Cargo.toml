@@ -24,7 +24,7 @@ dialoguer = "0.11.0"
 edit = "0.1.3"
 git2 = { version = "0.18.3", default-features = false }
 indexmap = "2.7.0"
-inquire = { version = "0.7.5", default-features = true, features = ["termion", "date"] }
+inquire = { version = "0.7.5", default-features = false, features = ["console", "macros"] }
 once_cell = "1.7.2"
 serde = { version = "1.0.126", features = ["derive"] }
 
