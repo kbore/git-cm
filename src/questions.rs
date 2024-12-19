@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use indexmap::IndexMap;
 use inquire::{
     error::{CustomUserError, InquireResult},
     min_length, required, Confirm, CustomType, Select, Text,
@@ -33,11 +34,11 @@ impl SurveyResults {
 /// # Returns
 ///
 /// A `SurveyResult`.
-pub fn ask(types: HashMap<&str, &str>) -> SurveyResults {
+pub fn ask(types: IndexMap<&str, &str>) -> SurveyResults {
     let mut results = SurveyResults::new();
 
     // <name####desc, desc>
-    let commit_type_map: HashMap<String, &str> = types
+    let commit_type_map: IndexMap<String, &str> = types
         .iter()
         .map(|(&name, &desc)| (format!("{:<10} [{}]", format!("{name}:"), desc), name))
         .collect();
@@ -45,6 +46,7 @@ pub fn ask(types: HashMap<&str, &str>) -> SurveyResults {
     let items = commit_type_map.iter().map(|(key, _)| key).collect();
 
     let selected_item = Select::new("Select the type of change that you're committing:", items)
+        .with_page_size(8)
         .with_starting_cursor(0)
         .with_formatter(&|show_item| commit_type_map[*show_item.value].to_string())
         .with_help_message("Use arrow keys to select")
@@ -61,7 +63,6 @@ pub fn ask(types: HashMap<&str, &str>) -> SurveyResults {
 
     let short_msg = Text::new("Write a short, imperative tense description of the change:")
         .with_validator(min_length!(5))
-        .with_help_message("Not less 5 characters")
         .prompt()
         .unwrap();
     results.short_msg = short_msg;
@@ -80,12 +81,10 @@ pub fn ask(types: HashMap<&str, &str>) -> SurveyResults {
     if is_breaking_change {
         let breaking_changes_desc = Text::new("Describe the breaking changes:")
             .with_validator(min_length!(5))
-            .with_help_message("Not less 5 characters")
             .prompt()
             .ok();
         results.breaking_changes_desc = breaking_changes_desc;
     }
-
 
     let are_issues_affected = Confirm::new("Does this change affect any open issues?")
         .with_default(false)
@@ -93,12 +92,13 @@ pub fn ask(types: HashMap<&str, &str>) -> SurveyResults {
         .unwrap();
 
     if are_issues_affected {
-        let affected_open_issues = Text::new(r##"Add issue references (space-separated, e.g. "#123" or "12 13")"##)
-            .with_validator(min_length!(5))
-            .with_help_message("Not less 5 characters")
-            .prompt()
-            .ok();
-        results.affected_open_issues = affected_open_issues.map(|s| s.split(' ').map(|e| e.to_string()).collect());
+        let affected_open_issues =
+            Text::new(r##"Add issue references (space-separated, e.g. "#123" or "12 13")"##)
+                .with_validator(min_length!(2))
+                .prompt()
+                .ok();
+        results.affected_open_issues =
+            affected_open_issues.map(|s| s.split(' ').map(|e| e.to_string()).collect());
     }
     results
 }

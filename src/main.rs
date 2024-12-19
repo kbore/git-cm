@@ -8,6 +8,7 @@ use crate::{
     questions::{ask, SurveyResults},
 };
 use clap::Parser;
+use indexmap::IndexMap;
 use std::{collections::HashMap, path::Path};
 
 mod args;
@@ -16,7 +17,7 @@ mod git;
 mod questions;
 
 fn run_dialog() -> Option<SurveyResults> {
-    let mut types: HashMap<&str, &str> = HashMap::with_capacity(10);
+    let mut types: IndexMap<&str, &str> = IndexMap::with_capacity(10);
     types.extend(&*DEFAULT_TYPES);
 
     return Some(ask(types));
