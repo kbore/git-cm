@@ -1,0 +1,8 @@
+[core]
+	safecrlf = warn
+	autocrlf = false
+	filemode = true
+	hooksPath = misc/git_hook
+
+[pull]
+	rebase = true

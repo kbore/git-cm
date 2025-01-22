@@ -10,4 +10,7 @@ pub struct App {
     /// The path to a git repository.
     #[arg(name = "REPO", default_value = ".")]
     pub repo_path: PathBuf,
+    
+    #[arg(long = "version")]
+    pub show_version: bool,
 }

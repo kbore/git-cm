@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "Runing ${0##*/} start"
+
+sleep 0.1
+
+echo "Runing ${0##*/} end"

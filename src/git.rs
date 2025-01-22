@@ -1,8 +1,10 @@
 use crate::questions::SurveyResults;
 use anyhow::{anyhow, Result};
 use git2::{Commit, Error, ObjectType, Oid, Repository, RepositoryOpenFlags, Status};
+use git2_hooks::{HookResult, PrepareCommitMsgSource};
 use indexmap::IndexMap;
 use once_cell::sync::{Lazy, OnceCell};
+use scopetime::scope_time;
 use std::{ffi::OsStr, path::Path, sync::Mutex};
 
 /// All default conventional commit types alongside their description.
@@ -11,11 +13,20 @@ pub static DEFAULT_TYPES: Lazy<IndexMap<&str, &str>> = Lazy::new(|| {
 
     m.insert("fix", "Fix an issue");
     m.insert("feat", "Add feature or new hardware support");
-    m.insert("build", "Changes that affect the build system (such as Makefile, CMake, pipeline)");
-    m.insert("refactor", "Code change that neither fixes a bug nor adds a feature");
+    m.insert(
+        "build",
+        "Changes that affect the build system (such as Makefile, CMake, pipeline)",
+    );
+    m.insert(
+        "refactor",
+        "Code change that neither fixes a bug nor adds a feature",
+    );
     m.insert("perf", "Code change that improves performance");
     m.insert("test", "Adding missing tests or correcting existing tests");
-    m.insert("chore", "Other changes that don't modify src or test files (such as documents, comments)");
+    m.insert(
+        "chore",
+        "Other changes that don't modify src or test files (such as documents, comments)",
+    );
 
     m
 });
@@ -151,4 +162,46 @@ pub fn commit_to_repo(msg: &str, repo: &Path) -> Result<Oid> {
     };
 
     Ok(oid)
+}
+
+pub fn hooks_pre_commit(repo_path: &Path) -> Result<()> {
+    scope_time!("hooks_pre_commit");
+
+    let repo = get_repository(repo_path).unwrap().lock().unwrap();
+
+    match git2_hooks::hooks_pre_commit(&repo, None)?.into() {
+        HookResult::NoHookFound => {
+            println!("No hook was found.");
+        }
+        HookResult::Ok { hook } => {
+            println!("Hook executed successfully: {:?}", hook);
+        }
+        HookResult::RunNotSuccessful {
+            code,
+            stdout,
+            stderr,
+            hook,
+        } => {
+            println!("Hook execution failed: {:?}", hook);
+            if let Some(code) = code {
+                println!("Exit code: {}", code);
+            } else {
+                println!("No exit code returned.");
+            }
+            println!("STDOUT: {}", stdout);
+            println!("STDERR: {}", stderr);
+        }
+    }
+
+    println!("test log ................");
+    Ok(())
+}
+
+/// see `git2_hooks::hooks_post_commit`
+pub fn hooks_post_commit(repo_path: &Path) -> Result<HookResult> {
+    scope_time!("hooks_post_commit");
+
+    let repo = get_repository(repo_path).unwrap().lock().unwrap();
+
+    Ok(git2_hooks::hooks_post_commit(&repo, None)?.into())
 }
